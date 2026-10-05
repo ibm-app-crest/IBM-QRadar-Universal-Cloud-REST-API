@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<Workflow name="Vectra XDR" version="1.0"
+<Workflow name="Vectra RUX" version="1.0"
     xmlns="http://qradar.ibm.com/UniversalCloudRESTAPI/Workflow/V2_1">
 
     <!-- Collect configurations from workflow parameter file -->
@@ -8,6 +8,12 @@
         <Parameter name="clientId" label="Client ID" required="true"/>
         <Parameter name="historical" label="Historical Collection" required="true"/>
         <Parameter name="secretKey" label="Secret Key" secret="true" required="true" />
+        <Parameter name="from" label="Initial Detection Event Checkpoint" required="false"/>
+        <Parameter name="lookbackHours" label="Initial Lookback Hours" required="false"/>
+        <Parameter name="includeInfoCategory" label="Include Info Category Detections" required="false"/>
+        <Parameter name="includeTriaged" label="Include Triaged Detections" required="false"/>
+        <Parameter name="collectEdrHealth" label="Collect EDR Health" required="false"/>
+        <Parameter name="collectExternalConnectorsHealth" label="Collect External Connectors Health" required="false"/>
     </Parameters>
 
     <Actions>
@@ -17,15 +23,15 @@
 
         <!-- Defining variables for running workflow -->
         <Set path="/vectraUrl" value="https://${/vectraHostName}"/>
-        <Set path="/logPrefix" value="[Vectra_XDR_App_for_QRadar][Audits][${/vectraUrl}]" />
+        <Set path="/logPrefix" value="[Vectra_RUX_App_for_QRadar][Audits][${/vectraUrl}]" />
         <Initialize path="/errorCount" value="0" />
         <Initialize path="/maxRetry" value="3" />
         <Initialize path="/createTokenEndpoint" value="/oauth2/token" />
-        <Initialize path="/auditEndpoint" value="/api/v3.3/events/audits" />
+        <Initialize path="/auditEndpoint" value="/api/v3.5/events/audits" />
         <Initialize path="/limit" value="1000" />
         <Initialize path="/refreshToken" value="" />
         <Initialize path="/defaultSleepTime" value="30" />
-        <Initialize path="/appVersion" value="1.0.0" />
+        <Initialize path="/appVersion" value="2.0.0" />
         <Initialize path="/userAgentHeader" value="Vectra-QRadar-${/appVersion}" />
 
         <!-- Audit checkpoint -->
@@ -41,6 +47,12 @@
 
         <!-- Print log in the /var/log/qradar.log file with info log level -->
         <Log type="INFO" message="${/logPrefix} - Audit collection started." />
+
+        <!-- Validate the 'historical' parameter (expects enable/disable, case-insensitive). -->
+        <If condition="${'${lower(/historical)}' != 'enable' and '${lower(/historical)}' != 'disable'}">
+            <Log type="INFO" message="${/logPrefix} - Invalid historical value: ${/historical}. Must be one of: enable, disable" />
+            <Abort reason="Invalid historical parameter. Must be one of: enable, disable" />
+        </If>
 
         <Set path="/errorCount" value="0" />
 
@@ -223,8 +235,8 @@
                 </Else>
             </Else>
 
-            <!-- Set event timestamp value past 24 hours in case of historical is true else current time -->
-            <If condition="${'${lower(/historical)}' = 'true'}">
+            <!-- Set event timestamp value past 24 hours in case of historical is enabled else current time -->
+            <If condition="${'${lower(/historical)}' = 'enable'}">
                 <Set path="/eventTimestamp" value="${/defaultEventTime}" />
             </If>
             <Else>

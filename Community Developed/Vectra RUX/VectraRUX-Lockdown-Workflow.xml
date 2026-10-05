@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<Workflow name="Vectra XDR" version="1.0"
+<Workflow name="Vectra RUX" version="1.0"
     xmlns="http://qradar.ibm.com/UniversalCloudRESTAPI/Workflow/V2_1">
 
     <!-- Collect configurations from workflow parameter file -->
@@ -9,6 +9,12 @@
         <Parameter name="clientId" label="Client ID" required="true"/>
         <Parameter name="historical" label="Historical Collection" required="false"/>
         <Parameter name="secretKey" label="Secret Key" secret="true" required="true" />
+        <Parameter name="from" label="Initial Detection Event Checkpoint" required="false"/>
+        <Parameter name="lookbackHours" label="Initial Lookback Hours" required="false"/>
+        <Parameter name="includeInfoCategory" label="Include Info Category Detections" required="false"/>
+        <Parameter name="includeTriaged" label="Include Triaged Detections" required="false"/>
+        <Parameter name="collectEdrHealth" label="Collect EDR Health" required="false"/>
+        <Parameter name="collectExternalConnectorsHealth" label="Collect External Connectors Health" required="false"/>
     </Parameters>
 
     <Actions>
@@ -18,14 +24,14 @@
 
         <!-- Defining variables for running workflow -->
         <Set path="/vectraUrl" value="https://${/vectraHostName}"/>
-        <Set path="/logPrefix" value="[Vectra_XDR_App_for_QRadar][Lockdown][${/vectraUrl}]" />
+        <Set path="/logPrefix" value="[Vectra_RUX_App_for_QRadar][Lockdown][${/vectraUrl}]" />
         <Initialize path="/errorCount" value="0" />
         <Initialize path="/maxRetry" value="3" />
         <Initialize path="/createTokenEndpoint" value="/oauth2/token" />
-        <Initialize path="/lockdownEndpoint" value="/api/v3.3/lockdown" />
+        <Initialize path="/lockdownEndpoint" value="/api/v3.5/lockdown" />
         <Initialize path="/refreshToken" value="" />
         <Initialize path="/defaultSleepTime" value="30" />
-        <Initialize path="/appVersion" value="1.0.0" />
+        <Initialize path="/appVersion" value="2.0.0" />
         <Initialize path="/userAgentHeader" value="Vectra-QRadar-${/appVersion}" />
 
         <!-- Initialize array to store lookup key i.e combination of entity_name, type, lock_event_timestamp, unlock_event_timestamp -->
